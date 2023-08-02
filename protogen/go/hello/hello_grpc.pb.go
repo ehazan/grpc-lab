@@ -22,6 +22,7 @@ const (
 	HelloService_SayHello_FullMethodName           = "/hello.HelloService/SayHello"
 	HelloService_SayManyHellos_FullMethodName      = "/hello.HelloService/SayManyHellos"
 	HelloService_SayHelloToEveryone_FullMethodName = "/hello.HelloService/SayHelloToEveryone"
+	HelloService_SayHelloContinuos_FullMethodName  = "/hello.HelloService/SayHelloContinuos"
 )
 
 // HelloServiceClient is the client API for HelloService service.
@@ -32,6 +33,7 @@ type HelloServiceClient interface {
 	// Add streaming RPCs here
 	SayManyHellos(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (HelloService_SayManyHellosClient, error)
 	SayHelloToEveryone(ctx context.Context, opts ...grpc.CallOption) (HelloService_SayHelloToEveryoneClient, error)
+	SayHelloContinuos(ctx context.Context, opts ...grpc.CallOption) (HelloService_SayHelloContinuosClient, error)
 }
 
 type helloServiceClient struct {
@@ -117,6 +119,37 @@ func (x *helloServiceSayHelloToEveryoneClient) CloseAndRecv() (*HelloResponse, e
 	return m, nil
 }
 
+func (c *helloServiceClient) SayHelloContinuos(ctx context.Context, opts ...grpc.CallOption) (HelloService_SayHelloContinuosClient, error) {
+	stream, err := c.cc.NewStream(ctx, &HelloService_ServiceDesc.Streams[2], HelloService_SayHelloContinuos_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &helloServiceSayHelloContinuosClient{stream}
+	return x, nil
+}
+
+type HelloService_SayHelloContinuosClient interface {
+	Send(*HelloRequest) error
+	Recv() (*HelloResponse, error)
+	grpc.ClientStream
+}
+
+type helloServiceSayHelloContinuosClient struct {
+	grpc.ClientStream
+}
+
+func (x *helloServiceSayHelloContinuosClient) Send(m *HelloRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *helloServiceSayHelloContinuosClient) Recv() (*HelloResponse, error) {
+	m := new(HelloResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // HelloServiceServer is the server API for HelloService service.
 // All implementations must embed UnimplementedHelloServiceServer
 // for forward compatibility
@@ -125,6 +158,7 @@ type HelloServiceServer interface {
 	// Add streaming RPCs here
 	SayManyHellos(*HelloRequest, HelloService_SayManyHellosServer) error
 	SayHelloToEveryone(HelloService_SayHelloToEveryoneServer) error
+	SayHelloContinuos(HelloService_SayHelloContinuosServer) error
 	mustEmbedUnimplementedHelloServiceServer()
 }
 
@@ -140,6 +174,9 @@ func (UnimplementedHelloServiceServer) SayManyHellos(*HelloRequest, HelloService
 }
 func (UnimplementedHelloServiceServer) SayHelloToEveryone(HelloService_SayHelloToEveryoneServer) error {
 	return status.Errorf(codes.Unimplemented, "method SayHelloToEveryone not implemented")
+}
+func (UnimplementedHelloServiceServer) SayHelloContinuos(HelloService_SayHelloContinuosServer) error {
+	return status.Errorf(codes.Unimplemented, "method SayHelloContinuos not implemented")
 }
 func (UnimplementedHelloServiceServer) mustEmbedUnimplementedHelloServiceServer() {}
 
@@ -219,6 +256,32 @@ func (x *helloServiceSayHelloToEveryoneServer) Recv() (*HelloRequest, error) {
 	return m, nil
 }
 
+func _HelloService_SayHelloContinuos_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(HelloServiceServer).SayHelloContinuos(&helloServiceSayHelloContinuosServer{stream})
+}
+
+type HelloService_SayHelloContinuosServer interface {
+	Send(*HelloResponse) error
+	Recv() (*HelloRequest, error)
+	grpc.ServerStream
+}
+
+type helloServiceSayHelloContinuosServer struct {
+	grpc.ServerStream
+}
+
+func (x *helloServiceSayHelloContinuosServer) Send(m *HelloResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *helloServiceSayHelloContinuosServer) Recv() (*HelloRequest, error) {
+	m := new(HelloRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // HelloService_ServiceDesc is the grpc.ServiceDesc for HelloService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -240,6 +303,12 @@ var HelloService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SayHelloToEveryone",
 			Handler:       _HelloService_SayHelloToEveryone_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "SayHelloContinuos",
+			Handler:       _HelloService_SayHelloContinuos_Handler,
+			ServerStreams: true,
 			ClientStreams: true,
 		},
 	},
