@@ -7,4 +7,4 @@ option go_package = "github.com/ehazan/grpc-lab/protogen/go/bank";
 
 service BankService {
   rpc GetCurrentBalance(CurrentBalanceRequest) returns (CurrentBalanceResponse) {}
-}
+  rpc FetchExchangeRates(ExchangeRateRequest) returns (stream ExchangeRateResponse) {}
